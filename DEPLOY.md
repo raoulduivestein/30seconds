@@ -36,7 +36,7 @@ De workflow is ingesteld voor jouw bestaande Nginx en draait:
 docker compose -f docker-compose.nginx.yml up -d --build
 ```
 
-De app luistert daarna alleen lokaal op `127.0.0.1:3000`. Nginx handelt het publieke verkeer voor `30seconds.opengekkenhuis.nl` af.
+De app luistert daarna alleen lokaal op `127.0.0.1:3030`. Nginx handelt het publieke verkeer voor `30seconds.opengekkenhuis.nl` af.
 
 ## Als je al Nginx draait
 
@@ -54,8 +54,16 @@ docker compose -f docker-compose.nginx.yml up -d --build
 Deze publiceert de app alleen lokaal op:
 
 ```text
-127.0.0.1:3000
+127.0.0.1:3030
 ```
+
+Als `3030` ook bezet is, kies je een andere poort met `HOST_PORT`, bijvoorbeeld:
+
+```bash
+HOST_PORT=3040 docker compose -f docker-compose.nginx.yml up -d --build
+```
+
+Pas dan ook `proxy_pass` in `deploy/nginx-30seconds.conf` aan naar diezelfde poort.
 
 Kopieer daarna de Nginx-config:
 
