@@ -46,7 +46,7 @@ jobs:
           VPS_USER: ${{ secrets.VPS_USER }}
           VPS_PATH: ${{ secrets.VPS_PATH }}
         run: |
-          TARGET_PATH="${VPS_PATH:-/opt/30seconds}"
+          TARGET_PATH="${VPS_PATH:-/var/www/30seconds}"
           ssh "$VPS_USER@$VPS_HOST" "mkdir -p '$TARGET_PATH'"
           scp /tmp/30seconds-release.tar.gz "$VPS_USER@$VPS_HOST:$TARGET_PATH/release.tar.gz"
 
@@ -56,7 +56,7 @@ jobs:
           VPS_USER: ${{ secrets.VPS_USER }}
           VPS_PATH: ${{ secrets.VPS_PATH }}
         run: |
-          TARGET_PATH="${VPS_PATH:-/opt/30seconds}"
+          TARGET_PATH="${VPS_PATH:-/var/www/30seconds}"
           ssh "$VPS_USER@$VPS_HOST" "
             set -e
             cd '$TARGET_PATH'
