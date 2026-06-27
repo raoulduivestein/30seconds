@@ -61,6 +61,6 @@ jobs:
             set -e
             cd '$TARGET_PATH'
             tar -xzf release.tar.gz
-            docker compose up -d --build
+            docker compose -f docker-compose.nginx.yml up -d --build
             docker compose ps
           "
