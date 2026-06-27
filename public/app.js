@@ -117,12 +117,13 @@ function hostNew() {
     localStorage.setItem("hostToken", state.hostToken);
     state.room = result.room;
     announce(`Kamer ${result.room.code} is gemaakt.`);
-    go(`/host/room/${result.room.code}`);
+    go(`/host/room/${result.room.code}?hostToken=${encodeURIComponent(state.hostToken)}`);
   });
 }
 
 async function loadRoom(code, mode) {
   try {
+    restoreHostTokenFromUrl();
     const result = await api(`/api/rooms?code=${encodeURIComponent(code)}`, null, mode === "host");
     state.room = result.room;
     connectEvents(code);
@@ -136,15 +137,22 @@ async function loadRoom(code, mode) {
 function hostRoom() {
   const room = state.room;
   const currentTeam = room.teams[room.currentTeamIndex];
+  const playerLink = `${location.origin}/join/${room.code}`;
+  const hostLink = `${location.origin}/host/room/${room.code}?hostToken=${encodeURIComponent(state.hostToken)}`;
   shell(`<h1>${escapeHtml(room.name)}</h1>
     ${statusBlock(room)}
     <section class="grid">
       <div class="panel">
         <h2>Kamercode</h2>
         <p class="room-code">${room.code}</p>
-        <p><input readonly value="${location.origin}/join/${room.code}" aria-label="Deelbare link"></p>
-        <button data-action="copy-link">Kopieer link</button>
-        <p class="notice">Deel deze link in Clubhouse. Audio blijft in Clubhouse.</p>
+        <label for="playerLink">Spelerlink</label>
+        <p><input id="playerLink" readonly value="${escapeAttr(playerLink)}" aria-label="Spelerlink om te delen"></p>
+        <button data-action="copy-link">Kopieer spelerlink</button>
+        <p class="notice">Deel deze spelerlink in Clubhouse. Audio blijft in Clubhouse.</p>
+        <label for="hostLink">Host beheerlink</label>
+        <p><input id="hostLink" readonly value="${escapeAttr(hostLink)}" aria-label="Host beheerlink"></p>
+        <button class="secondary" data-action="copy-host-link">Kopieer hostlink</button>
+        <p class="notice">Bewaar deze hostlink voor jezelf. Iedereen met deze link kan de kamer beheren.</p>
       </div>
       <div class="panel">
         <h2>Host acties</h2>
@@ -388,7 +396,11 @@ function helpHtml() {
 function bindHostActions() {
   on("[data-action='copy-link']", "click", async () => {
     await navigator.clipboard.writeText(`${location.origin}/join/${state.room.code}`);
-    announce("Deelbare link gekopieerd.");
+    announce("Spelerlink gekopieerd.");
+  });
+  on("[data-action='copy-host-link']", "click", async () => {
+    await navigator.clipboard.writeText(`${location.origin}/host/room/${state.room.code}?hostToken=${encodeURIComponent(state.hostToken)}`);
+    announce("Hostlink gekopieerd. Bewaar deze link voor jezelf.");
   });
   on("[data-action='teams']", "click", () => postHost("/api/create-teams", { code: state.room.code, teamCount: state.room.settings.teamCount }));
   on("[data-action='start-game']", "click", () => postHost("/api/start-game", { code: state.room.code }));
@@ -510,6 +522,13 @@ function bindLinks() {
 function go(path) {
   history.pushState({}, "", path);
   render();
+}
+
+function restoreHostTokenFromUrl() {
+  const token = new URLSearchParams(location.search).get("hostToken");
+  if (!token) return;
+  state.hostToken = token;
+  localStorage.setItem("hostToken", token);
 }
 
 function on(selector, event, handler) {
